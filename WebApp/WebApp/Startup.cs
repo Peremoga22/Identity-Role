@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using WebApp.Infrastructure;
 using WebApp.Models;
 
 namespace WebApp
@@ -26,7 +27,7 @@ namespace WebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.ConfigureApplicationCookie(opts => opts.LoginPath = "/User/Login");
             services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddIdentity<AppUser, IdentityRole>(
                     option =>
@@ -41,6 +42,8 @@ namespace WebApp
                 ).AddEntityFrameworkStores<AppIdentityDbContext>()
                 .AddDefaultTokenProviders();
             services.AddControllersWithViews();
+           // services.AddTransient<IPasswordValidator<AppUser>, CustomPasswordValidator>();
+            services.AddTransient<IUserValidator<AppUser>, CustomerUserValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
