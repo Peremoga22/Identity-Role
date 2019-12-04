@@ -70,12 +70,7 @@ namespace WebApp
             app.UseAuthentication();
 
             app.UseMvcWithDefaultRoute();
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllerRoute(
-            //        name: "default",
-            //        pattern: "{controller=Home}/{action=Index}/{id?}");
-            //});
+            
         }
     }
 }
