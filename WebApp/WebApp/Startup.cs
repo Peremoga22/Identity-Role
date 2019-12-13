@@ -31,6 +31,17 @@ namespace WebApp
         {
             services.ConfigureApplicationCookie(opts => opts.LoginPath = "/User/Login");
             services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddAuthorization(opts =>
+            {
+                opts.AddPolicy("AuthorsAndEditors", policy =>
+                {
+                    policy.AddRequirements(new DocumentAuthorizationRequirement
+                    {
+                        AllowAuthors = true,
+                        AllowEditors =true
+                    });                    
+                });
+            });
             services.AddIdentity<AppUser, IdentityRole>(
                     option =>
                     {
@@ -44,11 +55,13 @@ namespace WebApp
                 ).AddEntityFrameworkStores<AppIdentityDbContext>()
                 .AddDefaultTokenProviders();
             services.AddTransient<IAuthorizationHandler, BlockUsersHandler>();
+            services.AddTransient<IAuthorizationHandler, DocumentAuthorizationHandler>();
             services.AddControllersWithViews();
             services.AddTransient<IPasswordValidator<AppUser>, CustomPasswordValidator>();
             services.AddTransient<IUserValidator<AppUser>, CustomerUserValidator>();
             services.AddSingleton<IClaimsTransformation, LocationClaimsProvider>();
-            services.AddMvc(option => option.EnableEndpointRouting = false);              
+            services.AddMvc(option => option.EnableEndpointRouting = false);
+         
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

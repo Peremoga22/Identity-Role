@@ -17,14 +17,31 @@ namespace WebApp.Controllers
             new ProtectedDocument{Title="Project Plan",Author = "Bob",Editor="Vasyl"}
         };
 
+        private IAuthorizationService authService;
+
+        public DocumentController(IAuthorizationService auth)
+        {
+            authService = auth;
+        }
+
         public ViewResult Index()
         {
             return View(docs);
         }
 
-        public ViewResult Edit(string title)
+        public async Task<IActionResult>Edit(string title)
         {
-            return View("Index", docs.FirstOrDefault(d => d.Title == title));
+            ProtectedDocument document = docs.FirstOrDefault(d => d.Title == title);
+            AuthorizationResult authorizationResult = await authService.AuthorizeAsync(User, document, "AuthorsAndEditors");
+            if(authorizationResult.Succeeded)
+            {
+                return View("Index", document);
+            }
+            else
+            {
+                return new ChallengeResult();
+            }
         }
+     
     }
 }
