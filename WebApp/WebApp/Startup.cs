@@ -54,6 +54,11 @@ namespace WebApp
                     }
                 ).AddEntityFrameworkStores<AppIdentityDbContext>()
                 .AddDefaultTokenProviders();
+            services.AddAuthentication().AddFacebook(options =>
+            {
+                options.AppId = Config.AppId;
+                options.AppSecret = Config.Secret;
+            });
             services.AddTransient<IAuthorizationHandler, BlockUsersHandler>();
             services.AddTransient<IAuthorizationHandler, DocumentAuthorizationHandler>();
             services.AddControllersWithViews();

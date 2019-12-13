@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -57,6 +58,46 @@ namespace WebApp.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+        [AllowAnonymous]
+        public IActionResult FacebookLogin(string returnUrl)
+        {
+            string redirectUrl = Url.Action("FacebookResponse", "Account", new { ReturnUrl = returnUrl });
+
+            var properties = signInManager.ConfigureExternalAuthenticationProperties("Facebook", redirectUrl);
+            return new ChallengeResult("Facebook", properties);
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult>FacebookResponse(string returnUrl="/")
+        {
+            ExternalLoginInfo info = await signInManager.GetExternalLoginInfoAsync();
+            if(info==null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+            var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+            if(result.Succeeded)
+            {
+                return Redirect(returnUrl);
+            }
+            else
+            {
+                AppUser user = new AppUser
+                {
+                    Email = info.Principal.FindFirst(ClaimTypes.Email).Value,
+                    UserName =info.Principal.FindFirst(ClaimTypes.Email).Value
+                };
+                IdentityResult identityResult = await userManager.CreateAsync(user);
+                if(identityResult.Succeeded)
+                {
+                    identityResult = await userManager.AddLoginAsync(user, info);
+                    if(identityResult.Succeeded)
+                    {
+                        await signInManager.SignInAsync(user, false);
+                    }
+                }
+                return AccessDenied();
+            }
         }
     }
 }
